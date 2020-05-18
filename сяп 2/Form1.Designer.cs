@@ -33,6 +33,7 @@
             this.файлToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.createListStrip = new System.Windows.Forms.ToolStripMenuItem();
             this.openListStrip = new System.Windows.Forms.ToolStripMenuItem();
+            this.saveFast = new System.Windows.Forms.ToolStripMenuItem();
             this.safeListStrip = new System.Windows.Forms.ToolStripMenuItem();
             this.просмотрToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.prevStripMenu = new System.Windows.Forms.ToolStripMenuItem();
@@ -77,6 +78,7 @@
             this.файлToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.createListStrip,
             this.openListStrip,
+            this.saveFast,
             this.safeListStrip});
             this.файлToolStripMenuItem.Name = "файлToolStripMenuItem";
             this.файлToolStripMenuItem.Size = new System.Drawing.Size(48, 20);
@@ -95,6 +97,13 @@
             this.openListStrip.Size = new System.Drawing.Size(180, 22);
             this.openListStrip.Text = "Открыть";
             this.openListStrip.Click += new System.EventHandler(this.openListStrip_Click);
+            // 
+            // saveFast
+            // 
+            this.saveFast.Name = "saveFast";
+            this.saveFast.Size = new System.Drawing.Size(180, 22);
+            this.saveFast.Text = "Сохранить";
+            this.saveFast.Click += new System.EventHandler(this.saveFast_Click);
             // 
             // safeListStrip
             // 
@@ -117,7 +126,7 @@
             // 
             this.prevStripMenu.Enabled = false;
             this.prevStripMenu.Name = "prevStripMenu";
-            this.prevStripMenu.Size = new System.Drawing.Size(180, 22);
+            this.prevStripMenu.Size = new System.Drawing.Size(146, 22);
             this.prevStripMenu.Text = "Пред.студент";
             this.prevStripMenu.Click += new System.EventHandler(this.btnForPrev_Click);
             // 
@@ -125,7 +134,7 @@
             // 
             this.nextStripMenu.Enabled = false;
             this.nextStripMenu.Name = "nextStripMenu";
-            this.nextStripMenu.Size = new System.Drawing.Size(180, 22);
+            this.nextStripMenu.Size = new System.Drawing.Size(146, 22);
             this.nextStripMenu.Text = "След.студент";
             this.nextStripMenu.Click += new System.EventHandler(this.btnForNext_Click);
             // 
@@ -142,7 +151,7 @@
             // 
             this.addStrip.Enabled = false;
             this.addStrip.Name = "addStrip";
-            this.addStrip.Size = new System.Drawing.Size(180, 22);
+            this.addStrip.Size = new System.Drawing.Size(126, 22);
             this.addStrip.Text = "Добавить";
             this.addStrip.Click += new System.EventHandler(this.addStrip_Click);
             // 
@@ -150,7 +159,7 @@
             // 
             this.delStrip.Enabled = false;
             this.delStrip.Name = "delStrip";
-            this.delStrip.Size = new System.Drawing.Size(180, 22);
+            this.delStrip.Size = new System.Drawing.Size(126, 22);
             this.delStrip.Text = "Удалить";
             this.delStrip.Click += new System.EventHandler(this.delStrip_Click);
             // 
@@ -251,7 +260,7 @@
             // 
             // saveFileDialog
             // 
-            this.saveFileDialog.FileName = "save";
+            this.saveFileDialog.FileName = "NewFile";
             this.saveFileDialog.Filter = "XML files(*.xml)|*.xml";
             this.saveFileDialog.InitialDirectory = "Directory.GetCurrentDirectory();";
             // 
@@ -370,6 +379,7 @@
 		private System.Windows.Forms.Label label5;
 		private System.Windows.Forms.TextBox myTextBox;
 		private System.Windows.Forms.Button btnFind;
-	}
+        private System.Windows.Forms.ToolStripMenuItem saveFast;
+    }
 }
 

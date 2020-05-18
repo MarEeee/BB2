@@ -60,7 +60,7 @@ namespace сяп_2
 			openFileDialog.InitialDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
 			if (openFileDialog.ShowDialog() == DialogResult.OK)
 			{
-				fileName = openFileDialog.FileName;
+				fileName = new DirectoryInfo(openFileDialog.FileName).Name;
 				XmlSerializer formatter = new XmlSerializer(typeof(List<Student>));
 				using (FileStream fs = new FileStream(fileName, FileMode.OpenOrCreate))
 				{
@@ -86,24 +86,27 @@ namespace сяп_2
 					col++;
 
 			}
-			if (list.Count() != 0)
-			{
-				btnForNext.Enabled = true;
-				safeListStrip.Enabled = true;
-				nextStripMenu.Enabled = true;
-				addStrip.Enabled = true;
-				delStrip.Enabled = true;
-			}
-
-
-			if (list.Count() != 0 && position != -1)
-			{
-				Student current_stud = list[position];
-				tbName.Text = current_stud.name;
-				tbSurname.Text = current_stud.surname;
-				tbFack.Text = current_stud.fack;
-			}
-
+            if (list.Count() != 0)
+            {
+                btnForNext.Enabled = true;
+                safeListStrip.Enabled = true;
+                nextStripMenu.Enabled = true;
+                addStrip.Enabled = true;
+                delStrip.Enabled = true;
+                if (position != -1)
+                {
+                    Student current_stud = list[position];
+                    tbName.Text = current_stud.name;
+                    tbSurname.Text = current_stud.surname;
+                    tbFack.Text = current_stud.fack;
+                }
+            }
+			else
+            {
+                btnForNext.Enabled    = false;
+                nextStripMenu.Enabled = false;
+                delStrip.Enabled      = false;
+            }
 
 			if (IsLast())
 			{
@@ -146,12 +149,14 @@ namespace сяп_2
 		}
 		public bool IsFirst()
 		{
-			return Find(-1, position) == -1 ? true : false;
+            if (position == 0) return true;
+			return Find(-1, position) == -1? true : false;
 		}
 
 		public bool IsLast()
 		{
-			return Find(1, position) == -1 || Find(1, position) == list.Count() ? true : false;
+            if (position == list.Count() - 1) return true;
+			return Find(1, position) == -1 ? true : false;
 
 
 		}
@@ -160,19 +165,32 @@ namespace сяп_2
 		private void saveForm()
 		{
 
-			if (saveFileDialog.ShowDialog() == DialogResult.Cancel)
-				return;
-			DirectoryInfo info = new DirectoryInfo(saveFileDialog.FileName);
-			XmlSerializer formatter = new XmlSerializer(typeof(List<Student>));
-			fileName = fileName == null || fileName == string.Empty ? info.FullName : fileName;
-			using (FileStream fs = new FileStream(fileName, FileMode.OpenOrCreate))
+            saveFileDialog.FileName = fileName == string.Empty || fileName == null? saveFileDialog.FileName:fileName;
+			if (fileName == string.Empty || fileName == null)
 			{
-				formatter.Serialize(fs, list);
+				if (saveFileDialog.ShowDialog() == DialogResult.Cancel)
+
+					return;
 			}
-			MessageBox.Show(info.Name, "Файл сохранен");
-			checker = false;
+            Save_File();
 		}
 
+		private void saveFast_Click(object sender, EventArgs e)
+		{
+            Save_File();
+		}
+		private void Save_File()
+        {
+            DirectoryInfo info = new DirectoryInfo(saveFileDialog.FileName);
+            XmlSerializer formatter = new XmlSerializer(typeof(List<Student>));
+            using (FileStream fs = new FileStream(fileName, FileMode.OpenOrCreate))
+            {
+                formatter.Serialize(fs, list);
+            }
+
+            MessageBox.Show(string.Format("Файл {0} сохранен", info.Name));
+            checker = false;
+        }
 		private bool needUpdate()
 		{
 			if (checker == true && position != -1)
@@ -262,12 +280,15 @@ namespace сяп_2
 			//if (needUpdate() == true)
 			//	return;
 
-			if (needUpdate() == true) return;
-			DialogResult result = SavingList();
-			if (result == DialogResult.Cancel)
-				e.Cancel = true;
-			else if (result == DialogResult.Yes)
-				saveForm();
+			if (checker == false) return;
+            else
+			{
+                DialogResult result = SavingList();
+                	if (result == DialogResult.Cancel)
+                    	e.Cancel = true;
+                	else if (result == DialogResult.Yes)
+                    	saveForm();
+            }
 		}
 		private DialogResult SavingList()
 		{
@@ -320,6 +341,7 @@ namespace сяп_2
 					return position + 1;
 				else
 					return position - 1;
+				
 			}
 
 			return -1;
@@ -330,24 +352,28 @@ namespace сяп_2
 			pole_value.Item1 = myComboBox.SelectedItem.ToString(); // выбираем имя, фамилию или факультет студента по которым осуществляем поиск 
 			pole_value.Item2 = myTextBox.Text.Trim();               // значение по которому ищем
 
-			position = Find(1, -1);
-			checkupdate();
-
-
+			if (Find(1, -1) == -1)
+			{
+				MessageBox.Show("что-то пошло не так");
+				myTextBox.Text = "";
+                pole_value.Item2 = string.Empty;
+			}
+			else
+			{
+				position = Find(1, -1);
+				checkupdate();
+			}
 		}
 
 		private void TextChangeName(object sender, EventArgs e)
 		{
 			list[position].name = tbName.Text;
-
-
 			checker = true;
 		}
 
 		private void TextChangeSurname(object sender, EventArgs e)
 		{
 			list[position].surname = tbSurname.Text;
-			//if (list[position].name == "" || list[position].fack == "")
 			checker = true;
 		}
 
@@ -359,8 +385,10 @@ namespace сяп_2
 
 		private void StudentForm_Load(object sender, EventArgs e)
 		{
-
 		}
+
+
+		
 	}
 
 	[Serializable]
