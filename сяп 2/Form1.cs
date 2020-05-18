@@ -40,18 +40,6 @@ namespace сяп_2
 			checker = true;
 
 		}
-		public int Count()
-		{
-			int num = 0;
-			for (int i = 0; i < list.Count; i++)
-			{
-				if (list[i].correct)
-				{
-					num++;
-				}
-			}
-			return num;
-		}
 
 		private void openListStrip_Click(object sender, EventArgs e)
 		{
@@ -60,7 +48,7 @@ namespace сяп_2
 			openFileDialog.InitialDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
 			if (openFileDialog.ShowDialog() == DialogResult.OK)
 			{
-				fileName = new DirectoryInfo(openFileDialog.FileName).Name;
+				fileName = new DirectoryInfo(openFileDialog.FileName).FullName;
 				XmlSerializer formatter = new XmlSerializer(typeof(List<Student>));
 				using (FileStream fs = new FileStream(fileName, FileMode.OpenOrCreate))
 				{
@@ -80,12 +68,8 @@ namespace сяп_2
 		private void checkupdate() //вынесли все обновление в отдельный метод 
 		{
 			int col = 0;
-			for (int i = 0; i < list.Count; i++)
-			{
-				if (list[i].correct == false)
-					col++;
-
-			}
+			if (!string.IsNullOrEmpty(fileName))
+				saveFast.Enabled = true;
             if (list.Count() != 0)
             {
                 btnForNext.Enabled = true;
@@ -165,25 +149,21 @@ namespace сяп_2
 		private void saveForm()
 		{
 
-            saveFileDialog.FileName = fileName == string.Empty || fileName == null? saveFileDialog.FileName:fileName;
-			if (fileName == string.Empty || fileName == null)
-			{
-				if (saveFileDialog.ShowDialog() == DialogResult.Cancel)
-
-					return;
-			}
-            Save_File();
+			saveFileDialog.FileName = fileName == string.Empty || fileName == null ? saveFileDialog.FileName : fileName;
+			if (saveFileDialog.ShowDialog() == DialogResult.Cancel)
+				return;
+			Save_File(saveFileDialog.FileName);
 		}
 
 		private void saveFast_Click(object sender, EventArgs e)
 		{
-            Save_File();
+            Save_File(fileName);
 		}
-		private void Save_File()
+		private void Save_File(string name)
         {
             DirectoryInfo info = new DirectoryInfo(saveFileDialog.FileName);
             XmlSerializer formatter = new XmlSerializer(typeof(List<Student>));
-            using (FileStream fs = new FileStream(fileName, FileMode.OpenOrCreate))
+            using (FileStream fs = new FileStream(name, FileMode.OpenOrCreate))
             {
                 formatter.Serialize(fs, list);
             }
@@ -227,13 +207,6 @@ namespace сяп_2
 				//position--;
 				Prev();
 				checkupdate();
-
-				if (list[position].correct == true)
-				{
-					tbName.Text = list[position].name;
-					tbSurname.Text = list[position].surname;
-					tbFack.Text = list[position].fack;
-				}
 
 				//btnForNext.Enabled = true;
 				//nextStripMenu.Enabled = true;
@@ -397,8 +370,6 @@ namespace сяп_2
 		public string name;
 		public string surname;
 		public string fack;
-		public bool correct = true;
-
 		public Student()
 		{
 
