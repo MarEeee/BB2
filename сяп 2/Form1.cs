@@ -16,32 +16,30 @@ namespace сяп_2
 	public partial class StudentForm : Form
 	{
 		public bool checker = false;
-		
-        private ValueTuple<string, string> pole_value = new ValueTuple<string, string>();
-        List<Student> list;
-	
+
+		private ValueTuple<string, string> pole_value = new ValueTuple<string, string>();
+		List<Student> list;
+
 		public int position = 0;
 		string fileName;
-		
+
 		public StudentForm()
 		{
 			InitializeComponent();
 			myComboBox.SelectedIndex = 0;
 		}
-
 		private void createListStrip_Click(object sender, EventArgs e)
 		{
 			if (needUpdate() == true)
 				return;
-			
+
 			list = new List<Student>();
 			errorMessage.Text = "Пустой список был создан";
 			timer1.Enabled = true;
 			addStrip.Enabled = true;
 			checker = true;
-			
-		}
 
+		}
 		public int Count()
 		{
 			int num = 0;
@@ -59,6 +57,7 @@ namespace сяп_2
 		{
 			if (needUpdate() == true)
 				return;
+			openFileDialog.InitialDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
 			if (openFileDialog.ShowDialog() == DialogResult.OK)
 			{
 				fileName = openFileDialog.FileName;
@@ -97,7 +96,7 @@ namespace сяп_2
 			}
 
 
-			if (list.Count() != 0 && position!= -1)
+			if (list.Count() != 0 && position != -1)
 			{
 				Student current_stud = list[position];
 				tbName.Text = current_stud.name;
@@ -153,32 +152,30 @@ namespace сяп_2
 		public bool IsLast()
 		{
 			return Find(1, position) == -1 || Find(1, position) == list.Count() ? true : false;
-			
+
 
 		}
-	
+
 
 		private void saveForm()
 		{
 
 			if (saveFileDialog.ShowDialog() == DialogResult.Cancel)
 				return;
-			if (fileName != null)
+			DirectoryInfo info = new DirectoryInfo(saveFileDialog.FileName);
+			XmlSerializer formatter = new XmlSerializer(typeof(List<Student>));
+			fileName = fileName == null || fileName == string.Empty ? info.FullName : fileName;
+			using (FileStream fs = new FileStream(fileName, FileMode.OpenOrCreate))
 			{
-				DirectoryInfo info = new DirectoryInfo(saveFileDialog.FileName);
-				XmlSerializer formatter = new XmlSerializer(typeof(List<Student>));
-				using (FileStream fs = new FileStream(fileName, FileMode.OpenOrCreate))
-				{
-					formatter.Serialize(fs, list);
-				}
-				MessageBox.Show(info.Name, "Файл сохранен");
-				checker = false;
+				formatter.Serialize(fs, list);
 			}
+			MessageBox.Show(info.Name, "Файл сохранен");
+			checker = false;
 		}
 
 		private bool needUpdate()
 		{
-			if (checker == true && position!= -1)
+			if (checker == true && position != -1)
 			{
 				var result = SavingList();
 
@@ -195,14 +192,14 @@ namespace сяп_2
 		}
 		private void safeListStrip_Click(object sender, EventArgs e)
 		{
-			
+
 			saveForm();
 
 		}
-		
+
 		private void btnForPrev_Click(object sender, EventArgs e)
 		{
-			
+
 			if ((tbName.Text == "" || tbSurname.Text == "" || tbFack.Text == "") && list.Count != 0)
 			{
 				MessageBox.Show("Вы ввели не все данные");
@@ -212,14 +209,14 @@ namespace сяп_2
 				//position--;
 				Prev();
 				checkupdate();
-				
+
 				if (list[position].correct == true)
 				{
 					tbName.Text = list[position].name;
 					tbSurname.Text = list[position].surname;
 					tbFack.Text = list[position].fack;
 				}
-				
+
 				//btnForNext.Enabled = true;
 				//nextStripMenu.Enabled = true;
 			}
@@ -233,21 +230,15 @@ namespace сяп_2
 			}
 			else
 			{
-				
 				Next();
 				checkupdate();
-				
 			}
-					
 		}
-
 		private void timer1_Tick(object sender, EventArgs e)
 		{
 			errorMessage.Text = " ";
 			timer1.Enabled = false;
 		}
-					
-
 		private void addStrip_Click(object sender, EventArgs e)
 		{
 			list.Add(new Student() { name = "", surname = "", fack = "" });
@@ -256,8 +247,6 @@ namespace сяп_2
 			checkupdate();
 			checker = true;
 		}
-		
-
 		private void delStrip_Click(object sender, EventArgs e)
 		{
 			list.RemoveAt(position);
@@ -268,9 +257,6 @@ namespace сяп_2
 			checkupdate();
 			checker = true;
 		}
-
-		
-		
 		private void StudentForm_FormClosing(object sender, FormClosingEventArgs e)
 		{
 			//if (needUpdate() == true)
@@ -288,40 +274,44 @@ namespace сяп_2
 			return MessageBox.Show("Сохранить изменения?", "Информация", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Information);
 		}
 
-		public int Find (int side, int position) // помечаем список
+		public int Find(int side, int position) // помечаем список
 		{
 			if (pole_value.Item1 != null && pole_value.Item1 != string.Empty)
 			{
+				int position_find = position;
+				if (side == -1)
+					if (position_find == 0) return position_find;
+					else position_find--;
+				else
+				{
+					if (position_find == list.Count - 1) return position_find;
+					else position_find++;
+				}
 				if (pole_value.Item1 == "Имя")
 				{
-					
+
 					if (side == 1)
-						return list.FindIndex(position+1, x => pole_value.Item2.ToLower().Contains(x.name.ToLower()));
+						return list.FindIndex(position_find, x => x.name.ToLower().Contains(pole_value.Item2.ToLower()));
 					else
-						return list.FindLastIndex(position-1, x => pole_value.Item2.ToLower().Contains(x.name.ToLower()));
+						return list.FindLastIndex(position_find, x => x.name.ToLower().Contains(pole_value.Item2.ToLower()));
 
 				}
 
 				if (pole_value.Item1 == "Фамилия")
 				{
 					if (side == 1)
-						return list.FindIndex(position+1, x => pole_value.Item2.ToLower().Contains(x.surname.ToLower()));
+						return list.FindIndex(position_find, x => x.surname.ToLower().Contains(pole_value.Item2.ToLower()));
 					else
-						return list.FindLastIndex(position-1, x => pole_value.Item2.ToLower().Contains(x.surname.ToLower()));
+						return list.FindLastIndex(position_find, x => x.surname.ToLower().Contains(pole_value.Item2.ToLower()));
 
 				}
-			
-		
-
 
 				if (pole_value.Item1 == "Факультет")
 				{
-
 					if (side == 1)
-						return list.FindIndex(position+1, x => pole_value.Item2.ToLower().Contains(x.fack.ToLower()));
+						return list.FindIndex(position_find, x => x.fack.ToLower().Contains(pole_value.Item2.ToLower()));
 					else
-						return list.FindLastIndex(position-1, x => pole_value.Item2.ToLower().Contains(x.fack.ToLower()));
-
+						return list.FindLastIndex(position_find, x => x.fack.ToLower().Contains(pole_value.Item2.ToLower()));
 				}
 			}
 			else
@@ -340,10 +330,10 @@ namespace сяп_2
 			pole_value.Item1 = myComboBox.SelectedItem.ToString(); // выбираем имя, фамилию или факультет студента по которым осуществляем поиск 
 			pole_value.Item2 = myTextBox.Text.Trim();               // значение по которому ищем
 
-			position = Find(1, 0);
+			position = Find(1, -1);
 			checkupdate();
 
-			
+
 		}
 
 		private void TextChangeName(object sender, EventArgs e)
@@ -358,7 +348,7 @@ namespace сяп_2
 		{
 			list[position].surname = tbSurname.Text;
 			//if (list[position].name == "" || list[position].fack == "")
-				checker = true;
+			checker = true;
 		}
 
 		private void TextChangeFack(object sender, EventArgs e)
@@ -374,25 +364,23 @@ namespace сяп_2
 	}
 
 	[Serializable]
-	public class Student {
+	public class Student
+	{
 		public string name;
 		public string surname;
 		public string fack;
 		public bool correct = true;
-		
-
 
 		public Student()
 		{
 
 		}
-
-		public Student (string name, string surname, string fack)
+		public Student(string name, string surname, string fack)
 		{
 			this.name = name;
 			this.surname = surname;
 			this.fack = fack;
-			
+
 		}
 	}
 }

@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<ArrayOfStudent xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Student>
+    <name>Dmitry</name>
+    <surname>Telegin</surname>
+    <fack>1</fack>
+    <correct>true</correct>
+  </Student>
+  <Student>
+    <name>Max</name>
+    <surname>Ryabov</surname>
+    <fack>2</fack>
+    <correct>true</correct>
+  </Student>
+  <Student>
+    <name>Margin</name>
+    <surname>Efim</surname>
+    <fack>1</fack>
+    <correct>true</correct>
+  </Student>
+  <Student>
+    <name>Dmitry</name>
+    <surname>Lazarev</surname>
+    <fack>3</fack>
+    <correct>true</correct>
+  </Student>
+</ArrayOfStudent>
