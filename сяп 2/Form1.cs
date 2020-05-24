@@ -37,7 +37,6 @@ namespace сяп_2
 			errorMessage.Text = "Пустой список был создан";
 			timer1.Enabled = true;
 			addStrip.Enabled = true;
-			checker = true;
 
 		}
 
@@ -46,19 +45,34 @@ namespace сяп_2
 			if (needUpdate() == true)
 				return;
 			openFileDialog.InitialDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
+            openFileDialog.FileName = string.Empty;
 			if (openFileDialog.ShowDialog() == DialogResult.OK)
 			{
 				fileName = new DirectoryInfo(openFileDialog.FileName).FullName;
 				XmlSerializer formatter = new XmlSerializer(typeof(List<Student>));
 				using (FileStream fs = new FileStream(fileName, FileMode.OpenOrCreate))
 				{
-					list = (List<Student>)formatter.Deserialize(fs);
+                    try
+                    {
+                        list = (List<Student>)formatter.Deserialize(fs);
+                    }
+					catch // open a empty file
+                    {
+                        list = new List<Student>();
+                    }
 				}
-
-				checkupdate();
-				tbName.Text = list[position].name;
-				tbSurname.Text = list[position].surname;
-				tbFack.Text = list[position].fack;
+                if (list.Count != 0)
+                {
+                    tbName.Text = list[position].name;
+                    tbSurname.Text = list[position].surname;
+                    tbFack.Text = list[position].fack;
+                }
+				else
+                {
+                    tbName.Text = string.Empty;
+                    tbSurname.Text = string.Empty;
+                    tbFack.Text = string.Empty;
+                }
 				checkupdate();
 				checker = false;
 			}
@@ -67,17 +81,17 @@ namespace сяп_2
 		}
 		private void checkupdate() //вынесли все обновление в отдельный метод 
 		{
-			int col = 0;
 			if (!string.IsNullOrEmpty(fileName))
 				saveFast.Enabled = true;
             if (list.Count() != 0)
             {
                 btnForNext.Enabled = true;
-                safeListStrip.Enabled = true;
                 nextStripMenu.Enabled = true;
-                addStrip.Enabled = true;
                 delStrip.Enabled = true;
-                if (position != -1)
+				tbName.Enabled = true;
+				tbSurname.Enabled = true;
+				tbFack.Enabled = true;
+				if (position != -1)
                 {
                     Student current_stud = list[position];
                     tbName.Text = current_stud.name;
@@ -87,9 +101,14 @@ namespace сяп_2
             }
 			else
             {
-                btnForNext.Enabled    = false;
+                addStrip.Enabled = true;
+				tbName.Enabled = false;
+				tbSurname.Enabled = false;
+				tbFack.Enabled = false;
+				btnForNext.Enabled    = false;
                 nextStripMenu.Enabled = false;
                 delStrip.Enabled      = false;
+                btnForPrev.Enabled = false;
             }
 
 			if (IsLast())
@@ -114,11 +133,10 @@ namespace сяп_2
 				prevStripMenu.Enabled = true;
 			}
 
-			tbName.Enabled = true;
-			btnFind.Enabled = true;
+			
 			myTextBox.Enabled = true;
-			tbSurname.Enabled = true;
-			tbFack.Enabled = true;
+			btnFind.Enabled = true;
+			
 		}
 
 
@@ -127,51 +145,72 @@ namespace сяп_2
 		{
 			position = Find(1, position);
 		}
-		public void Prev()
-		{
-			position = Find(-1, position);
-		}
+        public void Prev() => position = Find(-1, position);
 		public bool IsFirst()
 		{
-            if (position == 0) return true;
+            if (position == 0 || list.Count() == 0) return true;
 			return Find(-1, position) == -1? true : false;
 		}
 
 		public bool IsLast()
 		{
-            if (position == list.Count() - 1) return true;
+
+            if (position == list.Count() - 1 || list.Count() == 0) return true;
 			return Find(1, position) == -1 ? true : false;
 
 
 		}
 
-
 		private void saveForm()
 		{
 
-			saveFileDialog.FileName = fileName == string.Empty || fileName == null ? saveFileDialog.FileName : fileName;
+			saveFileDialog.FileName = string.IsNullOrEmpty(fileName) ? saveFileDialog.FileName : new DirectoryInfo(fileName).Name;
 			if (saveFileDialog.ShowDialog() == DialogResult.Cancel)
 				return;
-			Save_File(saveFileDialog.FileName);
+			Save_File(new DirectoryInfo(saveFileDialog.FileName).FullName);
 		}
 
 		private void saveFast_Click(object sender, EventArgs e)
 		{
-            Save_File(fileName);
+            if (!string.IsNullOrEmpty(fileName))
+                Save_File(fileName);
+            else
+                saveForm();
 		}
-		private void Save_File(string name)
+		private void Save_File(string name) // name - полный путь до файла
         {
-            DirectoryInfo info = new DirectoryInfo(saveFileDialog.FileName);
             XmlSerializer formatter = new XmlSerializer(typeof(List<Student>));
             using (FileStream fs = new FileStream(name, FileMode.OpenOrCreate))
             {
                 formatter.Serialize(fs, list);
             }
 
-            MessageBox.Show(string.Format("Файл {0} сохранен", info.Name));
+            MessageBox.Show(string.Format("Файл {0} сохранен", new DirectoryInfo(name).Name));
             checker = false;
         }
-		private bool needUpdate()
+
+        private void StudentForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (checker == false) return;
+            else
+            {
+                DialogResult result = SavingList();
+                if (result == DialogResult.Cancel)
+                    e.Cancel = true;
+                else if (result == DialogResult.Yes)
+                {
+                    if (string.IsNullOrEmpty(fileName))
+                        saveForm();
+                    else
+                        Save_File(fileName);
+                }
+            }
+        }
+        private DialogResult SavingList()
+        {
+            return MessageBox.Show("Сохранить изменения?", "Информация", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Information);
+        }
+        private bool needUpdate()
 		{
 			if (checker == true && position != -1)
 			{
@@ -179,7 +218,10 @@ namespace сяп_2
 
 				if (result == DialogResult.Yes)
 				{
-					saveForm();
+                    if (string.IsNullOrEmpty(fileName))
+                        saveForm();
+                    else
+                        Save_File(fileName);
 				}
 				if (result == DialogResult.Cancel)
 				{
@@ -188,12 +230,7 @@ namespace сяп_2
 			}
 			return false;
 		}
-		private void safeListStrip_Click(object sender, EventArgs e)
-		{
-
-			saveForm();
-
-		}
+        private void safeListStrip_Click(object sender, EventArgs e) => saveForm();
 
 		private void btnForPrev_Click(object sender, EventArgs e)
 		{
@@ -204,12 +241,8 @@ namespace сяп_2
 			}
 			else
 			{
-				//position--;
 				Prev();
 				checkupdate();
-
-				//btnForNext.Enabled = true;
-				//nextStripMenu.Enabled = true;
 			}
 		}
 
@@ -232,11 +265,13 @@ namespace сяп_2
 		}
 		private void addStrip_Click(object sender, EventArgs e)
 		{
-			list.Add(new Student() { name = "", surname = "", fack = "" });
+            list.Add(new Student() { name = "", surname = "", fack = "" });
 			position = list.Count() - 1;
-
+           
 			checkupdate();
+			addStrip.Enabled = false;
 			checker = true;
+			tbName.Focus();
 		}
 		private void delStrip_Click(object sender, EventArgs e)
 		{
@@ -245,27 +280,22 @@ namespace сяп_2
 			{
 				position--;
 			}
-			checkupdate();
-			checker = true;
-		}
-		private void StudentForm_FormClosing(object sender, FormClosingEventArgs e)
-		{
-			//if (needUpdate() == true)
-			//	return;
-
-			if (checker == false) return;
-            else
-			{
-                DialogResult result = SavingList();
-                	if (result == DialogResult.Cancel)
-                    	e.Cancel = true;
-                	else if (result == DialogResult.Yes)
-                    	saveForm();
+            if (list.Count() == 0)
+            {
+                tbName.Text = string.Empty;
+                tbSurname.Text = string.Empty;
+                tbFack.Text = string.Empty;
+				tbName.Enabled = false;
+				tbSurname.Enabled = false;
+				tbFack.Enabled = false;
+                checker = false;
+			}
+			else
+            {
+                checker = true;
             }
-		}
-		private DialogResult SavingList()
-		{
-			return MessageBox.Show("Сохранить изменения?", "Информация", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Information);
+			checkupdate();
+			
 		}
 
 		public int Find(int side, int position) // помечаем список
@@ -338,30 +368,39 @@ namespace сяп_2
 			}
 		}
 
-		private void TextChangeName(object sender, EventArgs e)
-		{
+        private void TextChangeName(object sender, EventArgs e)
+        {
+			if (tbName.Text != string.Empty)
+				addStrip.Enabled = true;
+			if (list.Count() == 0) return;
+			if (tbName.Text != list[position].name)
+				checker = true;
 			list[position].name = tbName.Text;
-			checker = true;
-		}
+        }
 
 		private void TextChangeSurname(object sender, EventArgs e)
 		{
-			list[position].surname = tbSurname.Text;
-			checker = true;
+            if (tbSurname.Text != string.Empty)
+                addStrip.Enabled = true;
+            if (list.Count() == 0) return;
+            if (tbSurname.Text != list[position].surname)
+                checker = true;
+            list[position].surname = tbSurname.Text;
 		}
 
 		private void TextChangeFack(object sender, EventArgs e)
 		{
-			list[position].fack = tbFack.Text;
-			checker = true;
+            if (tbFack.Text != string.Empty)
+                addStrip.Enabled = true;
+            if (list.Count() == 0) return;
+            if (tbFack.Text != list[position].fack)
+                checker = true;
+            list[position].fack = tbFack.Text;
 		}
 
 		private void StudentForm_Load(object sender, EventArgs e)
 		{
 		}
-
-
-		
 	}
 
 	[Serializable]
